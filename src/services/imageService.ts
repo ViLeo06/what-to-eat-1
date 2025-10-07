@@ -39,7 +39,7 @@ export const generateRecipeImage = async (recipe: Recipe): Promise<GeneratedImag
                     prompt: prompt
                 },
                 parameters: {
-                    size: '1024*1024',
+                    size: '1328*1328',
                     n: 1
                 }
             })
@@ -98,7 +98,9 @@ const pollTaskResult = async (taskId: string, maxAttempts: number = 30): Promise
                 return data.output.results[0].url
             }
         } else if (data.output && data.output.task_status === 'FAILED') {
-            throw new Error('图片生成任务失败')
+            const errorMsg = data.output.message || data.output.code || '未知错误'
+            console.error('任务失败详情:', data.output)
+            throw new Error(`图片生成任务失败: ${errorMsg}`)
         }
     }
 
