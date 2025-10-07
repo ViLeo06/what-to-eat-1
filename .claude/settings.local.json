@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Bash(test -f \"C:\\Users\\M2814\\.cursor\\what-to-eat\\start-frontend.bat\")"
+      "Bash(test -f \"C:\\Users\\M2814\\.cursor\\what-to-eat\\start-frontend.bat\")",
+      "Bash(git push cursor master)"
     ],
     "deny": [],
     "ask": []
