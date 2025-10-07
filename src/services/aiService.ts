@@ -14,11 +14,16 @@ import type {
     NumberFortuneParams
 } from '@/types'
 
+const normalizeBaseURL = (url: string | undefined, fallback: string): string => {
+    const candidate = (url ?? fallback).trim()
+    return candidate.replace(/\/+$/, '')
+}
+
 // AI服务配置 - 从环境变量读取（菜谱生成模型配置）
 const AI_CONFIG = {
-    baseURL: import.meta.env.VITE_TEXT_GENERATION_BASE_URL || 'https://api.lingyiwanwu.com/v1/',
+    baseURL: normalizeBaseURL(import.meta.env.VITE_TEXT_GENERATION_BASE_URL, 'https://dashscope.aliyuncs.com/compatible-mode/v1'),
     apiKey: import.meta.env.VITE_TEXT_GENERATION_API_KEY,
-    model: import.meta.env.VITE_TEXT_GENERATION_MODEL || 'yi-lightning',
+    model: import.meta.env.VITE_TEXT_GENERATION_MODEL || 'qwen3-max',
     temperature: Number(import.meta.env.VITE_TEXT_GENERATION_TEMPERATURE) || 0.7,
     timeout: Number(import.meta.env.VITE_TEXT_GENERATION_TIMEOUT) || 300000
 }
@@ -74,7 +79,7 @@ export const generateRecipe = async (ingredients: string[], cuisine: CuisineType
 }`
 
         // 调用智谱AI接口
-        const response = await aiClient.post('/chat/completions', {
+        const response = await aiClient.post('chat/completions', {
             model: AI_CONFIG.model,
             messages: [
                 {
@@ -239,7 +244,7 @@ export const generateTableMenu = async (config: {
   ]
 }`
 
-        const response = await aiClient.post('/chat/completions', {
+        const response = await aiClient.post('chat/completions', {
             model: AI_CONFIG.model,
             messages: [
                 {
@@ -304,7 +309,7 @@ export const generateDishRecipe = async (dishName: string, dishDescription: stri
   "tips": ["技巧1", "技巧2"]
 }`
 
-        const response = await aiClient.post('/chat/completions', {
+        const response = await aiClient.post('chat/completions', {
             model: AI_CONFIG.model,
             messages: [
                 {
@@ -378,7 +383,7 @@ export const generateCustomRecipe = async (ingredients: string[], customPrompt: 
   "tips": ["技巧1", "技巧2"]
 }`
 
-        const response = await aiClient.post('/chat/completions', {
+        const response = await aiClient.post('chat/completions', {
             model: AI_CONFIG.model,
             messages: [
                 {
@@ -506,7 +511,7 @@ export const getNutritionAnalysis = async (recipe: Recipe): Promise<NutritionAna
   "servingSize": "1人份"
 }`
 
-        const response = await aiClient.post('/chat/completions', {
+        const response = await aiClient.post('chat/completions', {
             model: AI_CONFIG.model,
             messages: [
                 {
@@ -563,7 +568,7 @@ export const getWinePairing = async (recipe: Recipe): Promise<WinePairing> => {
   "origin": "产地"
 }`
 
-        const response = await aiClient.post('/chat/completions', {
+        const response = await aiClient.post('chat/completions', {
             model: AI_CONFIG.model,
             messages: [
                 {
@@ -746,7 +751,7 @@ const generateFallbackWinePairing = (cuisine: CuisineType, ingredients: string[]
  */
 export const testAIConnection = async (): Promise<boolean> => {
     try {
-        const response = await aiClient.post('/chat/completions', {
+        const response = await aiClient.post('chat/completions', {
             model: AI_CONFIG.model,
             messages: [
                 {
@@ -795,7 +800,7 @@ export const generateDishRecipeByName = async (dishName: string): Promise<Recipe
   "tips": ["实用技巧1", "注意事项2", "口感调节3"]
 }`
 
-        const response = await aiClient.post('/chat/completions', {
+        const response = await aiClient.post('chat/completions', {
             model: AI_CONFIG.model,
             messages: [
                 {
@@ -895,7 +900,7 @@ export const generateSauceRecipe = async (sauceName: string): Promise<SauceRecip
   "description": "酱料特色描述"
 }`
 
-        const response = await aiClient.post('/chat/completions', {
+        const response = await aiClient.post('chat/completions', {
             model: AI_CONFIG.model,
             messages: [
                 {
@@ -994,7 +999,7 @@ export const recommendSauces = async (preferences: SaucePreference): Promise<str
   ]
 }`
 
-        const response = await aiClient.post('/chat/completions', {
+        const response = await aiClient.post('chat/completions', {
             model: AI_CONFIG.model,
             messages: [
                 {
@@ -1091,7 +1096,7 @@ ${request.customRequirements ? `- 特殊要求：${request.customRequirements}` 
   "description": "创新酱料特色描述"
 }`
 
-        const response = await aiClient.post('/chat/completions', {
+        const response = await aiClient.post('chat/completions', {
             model: AI_CONFIG.model,
             messages: [
                 {
@@ -1173,7 +1178,7 @@ export const getSaucePairings = async (sauceName: string): Promise<string[]> => 
   ]
 }`
 
-        const response = await aiClient.post('/chat/completions', {
+        const response = await aiClient.post('chat/completions', {
             model: AI_CONFIG.model,
             messages: [
                 {
@@ -1234,7 +1239,7 @@ export const generateDailyFortune = async (params: DailyFortuneParams): Promise<
   "steps": ["制作步骤1", "制作步骤2"]
 }`
 
-        const response = await aiClient.post('/chat/completions', {
+        const response = await aiClient.post('chat/completions', {
             model: AI_CONFIG.model,
             messages: [
                 {
@@ -1315,7 +1320,7 @@ export const generateMoodCooking = async (params: MoodFortuneParams): Promise<Fo
   "steps": ["治愈步骤1", "治愈步骤2"]
 }`
 
-        const response = await aiClient.post('/chat/completions', {
+        const response = await aiClient.post('chat/completions', {
             model: AI_CONFIG.model,
             messages: [
                 {
@@ -1400,7 +1405,7 @@ export const generateCoupleCooking = async (params: CoupleFortuneParams): Promis
   "steps": ["合作步骤1", "合作步骤2"]
 }`
 
-        const response = await aiClient.post('/chat/completions', {
+        const response = await aiClient.post('chat/completions', {
             model: AI_CONFIG.model,
             messages: [
                 {
@@ -1480,7 +1485,7 @@ export const generateNumberFortune = async (params: NumberFortuneParams): Promis
   "steps": ["制作步骤1", "制作步骤2"]
 }`
 
-        const response = await aiClient.post('/chat/completions', {
+        const response = await aiClient.post('chat/completions', {
             model: AI_CONFIG.model,
             messages: [
                 {
@@ -1546,7 +1551,7 @@ export const chatStream = async (
     onComplete?: (fullText: string) => void,
     onError?: (err: unknown) => void
 ): Promise<void> => {
-    const url = AI_CONFIG.baseURL.replace(/\/$/, '') + '/chat/completions'
+    const url = `${AI_CONFIG.baseURL}/chat/completions`
     const headers: Record<string, string> = {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${AI_CONFIG.apiKey}`

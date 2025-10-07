@@ -1,13 +1,18 @@
 import type { Recipe } from '@/types'
 
+const normalizeBaseURL = (url: string | undefined, fallback: string): string => {
+    const candidate = (url ?? fallback).trim()
+    return candidate.replace(/\/+$/, '')
+}
+
 // 图片生成模型配置 - 从环境变量读取
 const IMAGE_CONFIG = {
     apiKey: import.meta.env.VITE_IMAGE_GENERATION_API_KEY,
-    baseURL: import.meta.env.VITE_IMAGE_GENERATION_BASE_URL || 'https://open.bigmodel.cn/api/paas/v4/',
-    model: import.meta.env.VITE_IMAGE_GENERATION_MODEL || 'cogview-3-flash'
+    baseURL: normalizeBaseURL(import.meta.env.VITE_IMAGE_GENERATION_BASE_URL, 'https://dashscope.aliyuncs.com/compatible-mode/v1'),
+    model: import.meta.env.VITE_IMAGE_GENERATION_MODEL || 'qwen3-max'
 }
 
-const API_URL = `${IMAGE_CONFIG.baseURL}images/generations`
+const API_URL = `${IMAGE_CONFIG.baseURL}/images/generations`
 
 export interface GeneratedImage {
     url: string
