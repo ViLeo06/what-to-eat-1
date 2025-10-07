@@ -354,7 +354,7 @@ const generateImage = async () => {
         GalleryService.addToGallery(props.recipe, image.url, image.id, prompt)
     } catch (error) {
         console.error('生成图片失败:', error)
-        imageError.value = 'AI画师表示这道菜太有艺术挑战性了，哈哈！'
+        imageError.value = error instanceof Error ? error.message : 'AI画师表示这道菜太有艺术挑战性了，哈哈！'
     } finally {
         isGeneratingImage.value = false
         if (imageLoadingInterval) {

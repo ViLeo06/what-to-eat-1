@@ -12,7 +12,8 @@ const IMAGE_CONFIG = {
     model: import.meta.env.VITE_IMAGE_GENERATION_MODEL || 'qwen3-max'
 }
 
-const API_URL = `${IMAGE_CONFIG.baseURL}/images/generations`
+// 阿里云原生图片生成API端点 - 通过Vite代理访问
+const API_URL = '/api/dashscope/api/v1/services/aigc/text2image/image-synthesis'
 
 export interface GeneratedImage {
     url: string
@@ -23,43 +24,85 @@ export const generateRecipeImage = async (recipe: Recipe): Promise<GeneratedImag
     // 构建图片生成的提示词
     const prompt = buildImagePrompt(recipe)
 
-    const sizeToUse = { width: 1024, height: 1024 }
-
     try {
+        // 使用异步调用方式
         const response = await fetch(API_URL, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                Authorization: `Bearer ${IMAGE_CONFIG.apiKey}`
+                'Authorization': `Bearer ${IMAGE_CONFIG.apiKey}`,
+                'X-DashScope-Async': 'enable'
             },
             body: JSON.stringify({
                 model: IMAGE_CONFIG.model,
-                prompt: prompt,
-                size: `${sizeToUse.width}x${sizeToUse.height}`,
-                n: 1,
-                style: 'vivid',
-                quality: 'hd'
+                input: {
+                    prompt: prompt
+                },
+                parameters: {
+                    size: '1024*1024',
+                    n: 1
+                }
             })
         })
 
         if (!response.ok) {
-            throw new Error(`API请求失败: ${response.status}`)
+            const errorData = await response.json().catch(() => ({}))
+            const errorMessage = errorData.message || errorData.error?.message || `API请求失败: ${response.status}`
+            console.error('图片生成API错误:', { status: response.status, error: errorData })
+            throw new Error(errorMessage)
         }
 
         const data = await response.json()
+        console.log('图片生成API响应:', data)
 
-        if (data.data && data.data.length > 0) {
+        // 异步任务，需要轮询获取结果
+        if (data.output && data.output.task_id) {
+            const taskId = data.output.task_id
+            const imageUrl = await pollTaskResult(taskId)
             return {
-                url: data.data[0].url,
+                url: imageUrl,
                 id: `${recipe.id}-${Date.now()}`
             }
         } else {
-            throw new Error('API返回数据格式错误')
+            throw new Error('API返回数据格式错误: ' + JSON.stringify(data))
         }
     } catch (error) {
         console.error('生成图片失败:', error)
         throw error
     }
+}
+
+// 轮询任务结果
+const pollTaskResult = async (taskId: string, maxAttempts: number = 30): Promise<string> => {
+    const getTaskUrl = `/api/dashscope/api/v1/tasks/${taskId}`
+
+    for (let i = 0; i < maxAttempts; i++) {
+        await new Promise(resolve => setTimeout(resolve, 2000)) // 等待2秒
+
+        const response = await fetch(getTaskUrl, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${IMAGE_CONFIG.apiKey}`
+            }
+        })
+
+        if (!response.ok) {
+            throw new Error(`查询任务状态失败: ${response.status}`)
+        }
+
+        const data = await response.json()
+        console.log('任务状态:', data)
+
+        if (data.output && data.output.task_status === 'SUCCEEDED') {
+            if (data.output.results && data.output.results.length > 0) {
+                return data.output.results[0].url
+            }
+        } else if (data.output && data.output.task_status === 'FAILED') {
+            throw new Error('图片生成任务失败')
+        }
+    }
+
+    throw new Error('图片生成超时')
 }
 
 const buildImagePrompt = (recipe: Recipe): string => {
