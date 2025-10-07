@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(test -f \"C:\\Users\\M2814\\.cursor\\what-to-eat\\start-frontend.bat\")"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
